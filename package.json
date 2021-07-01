@@ -1,6 +1,6 @@
 {
   "name": "react-native-ridge-list",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "FlatList abstraction which uses react-window on the web to create better list performance",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
