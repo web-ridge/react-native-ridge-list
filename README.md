@@ -1,21 +1,27 @@
 # react-native-ridge-list
-FlatList abstraction which uses [bvaughn/react-window](https://github.com/bvaughn/react-window) on the web to create better list performance
 
-## Supported props
-- ListHeaderComponent (you have to provide height in the ListHeaderComponentStyle, it understands height + marginTop, marginBottom etc.
-- ListHeaderComponentStyle
-- numColumns = 1
-- maxToRenderPerBatch = 20
-- data
-- renderItem
-- getItemLayout
-- onEndReached
-- inverted
-- testID
+FlatList abstraction which uses react-window on the web to create better list performance
 
+## Installation
 
-## Caveats
-- you are required to provide the getItemLayout
-- inverted FlatList always reverse scroll on Mac devices but don't understand other scroll behaviours in browsers other than Safari
-    - https://bugs.chromium.org/p/chromium/issues/detail?id=156551
-    - https://github.com/w3c/uievents/issues/57
+```sh
+npm install react-native-ridge-list
+```
+
+## Usage
+
+```js
+import RidgeList from "react-native-ridge-list";
+
+// ...
+
+const result = await RidgeList.multiply(3, 7);
+```
+
+## Contributing
+
+See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+
+## License
+
+MIT
