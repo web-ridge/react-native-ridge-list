@@ -36,10 +36,11 @@ export default function FlatList<T>(props: FlatListProps<T>) {
     if (!inverted) {
       return;
     }
+    const ref = outerRef.current;
     const listener = (e: WheelEvent) => {
       e.preventDefault();
 
-      if (outerRef.current) {
+      if (ref) {
         // only supported in safari but maybe added in the future
         let reverse =
           (e as any).directionInvertedFromDevice ||
@@ -51,29 +52,25 @@ export default function FlatList<T>(props: FlatListProps<T>) {
           reverse = navigator.platform.indexOf('Mac') > -1;
         }
 
-        if (outerRef) {
-          if (reverse) {
-            outerRef.current.scrollTop -= e.deltaY;
-          } else {
-            outerRef.current.scrollTop += e.deltaY;
-          }
+        if (reverse) {
+          ref.scrollTop -= e.deltaY;
+        } else {
+          ref.scrollTop += e.deltaY;
         }
       }
 
       return false;
     };
-    // const scrollListener = (e: Event) => {
-    //   e.preventDefault();
-    //
-    //   return false;
-    // };
-    window.addEventListener('wheel', listener, { passive: false });
-    // window.addEventListener('scroll', scrollListener, { passive: false });
-    return () => {
-      window.removeEventListener('wheel', listener);
-      // window.removeEventListener('scroll', scrollListener);
-    };
+
+    if (ref) {
+      ref.addEventListener('wheel', listener, { passive: false });
+      return () => {
+        ref.removeEventListener('wheel', listener);
+      };
+    }
+    return;
   }, [inverted]);
+
   const Grid = ({ columnIndex, rowIndex, style }: any) => {
     const index = rowIndex + columnIndex;
     return (
@@ -108,13 +105,8 @@ export default function FlatList<T>(props: FlatListProps<T>) {
     const layoutHeight = getItemLayout(data as any, index).length;
     if (index === 0 && (ListHeaderComponent || ListHeaderComponentStyle)) {
       if (ListHeaderComponentStyle) {
-        const {
-          marginTop,
-          marginBottom,
-          paddingTop,
-          paddingBottom,
-          height,
-        } = StyleSheet.flatten(ListHeaderComponentStyle);
+        const { marginTop, marginBottom, paddingTop, paddingBottom, height } =
+          StyleSheet.flatten(ListHeaderComponentStyle);
         return (
           layoutHeight +
           (Number(marginTop) || 0) +
@@ -139,22 +131,21 @@ export default function FlatList<T>(props: FlatListProps<T>) {
   const isItemLoaded = (index: number) => index < itemCount;
 
   const onLoadMore = React.useCallback(
-    (startIndex: number, stopIndex: number) => {
+    (_: number, stopIndex: number) => {
       const total = getItemLayout(data as any, (data as any).length - 1);
       const totalHeight = total.offset + total.length;
       const offset = getItemLayout(data as any, stopIndex).offset;
-      onEndReached &&
-        onEndReached({
-          distanceFromEnd: totalHeight - offset,
-        });
+      onEndReached?.({
+        distanceFromEnd: totalHeight - offset,
+      });
       return null;
     },
-    [data, getItemLayout, onEndReached],
+    [data, getItemLayout, onEndReached]
   );
 
   const outerElementType = React.useMemo(
     () => outerElementTypeWithTestId(testID),
-    [testID],
+    [testID]
   );
 
   let inner;
@@ -220,15 +211,22 @@ export default function FlatList<T>(props: FlatListProps<T>) {
     }) => {
       setLayout({ width, height });
     },
-    [setLayout],
+    [setLayout]
   );
 
   return (
     <View
       onLayout={onLayout}
-      style={[props.style, inverted && { transform: [{ scale: -1 }] }]}
+      style={[props.style, inverted && styles.invertedContainer]}
     >
       {layout.width > 0 && layout.height > 0 ? inner : null}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  invertedContainer: {
+    transform: [{ scale: -1 }],
+  },
+  invertedItem: {},
+});
