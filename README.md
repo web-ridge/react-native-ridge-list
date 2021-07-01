@@ -17,7 +17,7 @@ FlatList abstraction which uses [bvaughn/react-window](https://github.com/bvaugh
 
 ## Caveats
 - you are required to provide the getItemLayout
-- inverted FlatList always reverse scroll on Mac devices but don't understand other scroll behaviours in browsers other than Safari
+- inverted FlatList always reverse scroll on Mac devices but don't understand other scroll behaviours in browsers other than Safari, because we can only detect this in Safari.
     - https://bugs.chromium.org/p/chromium/issues/detail?id=156551
     - https://github.com/w3c/uievents/issues/57
 ## Installation
