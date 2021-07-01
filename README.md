@@ -5,8 +5,8 @@ FlatList abstraction which uses [bvaughn/react-window](https://github.com/bvaugh
 ## Supported props
 - ListHeaderComponent (you have to provide height in the ListHeaderComponentStyle, it understands height + marginTop, marginBottom etc.
 - ListHeaderComponentStyle
-- numColumns = 1
-- maxToRenderPerBatch = 20
+- numColumns 
+- maxToRenderPerBatch
 - data
 - renderItem
 - getItemLayout
