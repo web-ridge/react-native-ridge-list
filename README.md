@@ -1,5 +1,17 @@
 # react-native-ridge-list
-FlatList abstraction which uses (bvaughn/react-window)[https://github.com/bvaughn/react-window] on the web to create better list performance
+FlatList abstraction which uses [bvaughn/react-window](https://github.com/bvaughn/react-window) on the web to create better list performance
+
+## Supported props
+- ListHeaderComponent (you have to provide height in the ListHeaderComponentStyle, it understands height + marginTop, marginBottom etc.
+- ListHeaderComponentStyle
+- numColumns = 1
+- maxToRenderPerBatch = 20
+- data
+- renderItem
+- getItemLayout
+- onEndReached
+- inverted
+- testID
 
 
 ## Caveats
