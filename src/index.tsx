@@ -1,20 +1,13 @@
 import * as React from 'react';
-import { View } from 'react-native';
-import { FlatListProps, StyleSheet } from 'react-native';
-import InfiniteLoader from 'react-window-infinite-loader';
-import { VariableSizeList, VariableSizeGrid } from 'react-window';
+import { useVirtual } from 'react-virtual';
+import { FlatListProps, View } from 'react-native';
 
-const outerElementTypeWithTestId = (testID: string | undefined) =>
-  React.forwardRef((props, ref) => (
-    // @ts-ignore
-    <div ref={ref} data-testid={testID} {...props} />
-  ));
-
-export default function FlatList<T>(props: FlatListProps<T>) {
-  const outerRef = React.useRef<HTMLDivElement | undefined>(undefined);
+function FlatList<T>(props: FlatListProps<T>) {
   const {
     ListHeaderComponent,
     ListHeaderComponentStyle,
+    ListFooterComponent,
+    ListFooterComponentStyle,
     numColumns = 1,
     maxToRenderPerBatch = 20,
     data,
@@ -25,208 +18,114 @@ export default function FlatList<T>(props: FlatListProps<T>) {
     testID,
   } = props;
 
-  const onEndReachedThreshold: number = props.onEndReachedThreshold || 15;
+  const canFetchMore = false;
+  const isFetchingMore = false;
+  const parentRef = React.useRef(null);
 
-  if (!getItemLayout) {
-    throw Error('getItemLayout is required with react-native-ridge');
-  }
-
-  const [layout, setLayout] = React.useState({ width: 0, height: 0 });
-  React.useEffect(() => {
-    if (!inverted) {
-      return;
-    }
-    const ref = outerRef.current;
-    const listener = (e: WheelEvent) => {
-      e.preventDefault();
-
-      if (ref) {
-        // only supported in safari but maybe added in the future
-        let reverse =
-          (e as any).directionInvertedFromDevice ||
-          (e as any).webkitDirectionInvertedFromDevice ||
-          (e as any).directionInvertedFromDevice;
-
-        // fallback on default settings
-        if (reverse === undefined) {
-          reverse = navigator.platform.indexOf('Mac') > -1;
-        }
-
-        if (reverse) {
-          ref.scrollTop -= e.deltaY;
-        } else {
-          ref.scrollTop += e.deltaY;
-        }
-      }
-
-      return false;
-    };
-
-    if (ref) {
-      ref.addEventListener('wheel', listener, { passive: false });
-      return () => {
-        ref.removeEventListener('wheel', listener);
-      };
-    }
-    return;
-  }, [inverted]);
-
-  const Grid = ({ columnIndex, rowIndex, style }: any) => {
-    const index = rowIndex + columnIndex;
-    return (
-      // eslint-disable-next-line react-native/no-inline-styles
-      <div style={inverted ? { ...style, transform: 'scale(-1)' } : style}>
-        {data && data.length > 0 && renderItem
-          ? renderItem({ index, item: data && data[index] } as any)
-          : null}
-      </div>
-    );
-  };
-
-  const Row = ({ index, style }: any) => (
-    // eslint-disable-next-line react-native/no-inline-styles
-    <div style={inverted ? { ...style, transform: 'scale(-1)' } : style}>
-      {index === 0
-        ? ListHeaderComponent && (
-            <View style={ListHeaderComponentStyle}>
-              {typeof ListHeaderComponent === 'function'
-                ? (ListHeaderComponent as any)()
-                : ListHeaderComponent}
-            </View>
-          )
-        : null}
-      {data && data.length > 0 && renderItem
-        ? renderItem({ index, item: data && data[index] } as any)
-        : null}
-    </div>
-  );
-
-  const getItemSize = (index: number) => {
-    const layoutHeight = getItemLayout(data as any, index).length;
-    if (index === 0 && (ListHeaderComponent || ListHeaderComponentStyle)) {
-      if (ListHeaderComponentStyle) {
-        const { marginTop, marginBottom, paddingTop, paddingBottom, height } =
-          StyleSheet.flatten(ListHeaderComponentStyle);
-        return (
-          layoutHeight +
-          (Number(marginTop) || 0) +
-          (Number(marginBottom) || 0) +
-          (Number(paddingTop) || 0) +
-          (Number(paddingBottom) || 0) +
-          (Number(height) || 0)
-        );
-      }
-      // to add support for header
-      if (ListHeaderComponent) {
-        return layoutHeight * 2;
-      }
-    }
-    return layoutHeight;
-  };
-  const getItemWidth = (_: number) => {
-    return layout.width / numColumns;
-  };
-  const itemCount = data && data.length > 0 ? data.length : 1; // to add support for header
-
-  const isItemLoaded = (index: number) => index < itemCount;
-
-  const onLoadMore = React.useCallback(
-    (_: number, stopIndex: number) => {
-      const total = getItemLayout(data as any, (data as any).length - 1);
-      const totalHeight = total.offset + total.length;
-      const offset = getItemLayout(data as any, stopIndex).offset;
-      onEndReached?.({
-        distanceFromEnd: totalHeight - offset,
-      });
-      return null;
-    },
-    [data, getItemLayout, onEndReached]
-  );
-
-  const outerElementType = React.useMemo(
-    () => outerElementTypeWithTestId(testID),
-    [testID]
-  );
-
-  let inner;
-  if (numColumns > 1) {
-    inner = (
-      <InfiniteLoader
-        isItemLoaded={isItemLoaded}
-        itemCount={itemCount + maxToRenderPerBatch}
-        loadMoreItems={onLoadMore}
-        minimumBatchSize={maxToRenderPerBatch}
-        threshold={onEndReachedThreshold}
-      >
-        {({ onItemsRendered, ref }) => (
-          <VariableSizeGrid
-            ref={ref}
-            outerRef={outerRef}
-            outerElementType={outerElementType}
-            onItemsRendered={onItemsRendered as any}
-            width={layout.width}
-            height={layout.height}
-            columnCount={numColumns}
-            rowHeight={getItemSize}
-            columnWidth={getItemWidth}
-            rowCount={Math.ceil(itemCount / numColumns)}
-          >
-            {Grid}
-          </VariableSizeGrid>
-        )}
-      </InfiniteLoader>
-    );
-  } else {
-    inner = (
-      <InfiniteLoader
-        isItemLoaded={isItemLoaded}
-        itemCount={itemCount + maxToRenderPerBatch}
-        loadMoreItems={onLoadMore}
-        minimumBatchSize={maxToRenderPerBatch}
-        threshold={onEndReachedThreshold}
-      >
-        {({ onItemsRendered, ref }) => (
-          <VariableSizeList
-            ref={ref}
-            outerRef={outerRef}
-            outerElementType={outerElementType}
-            onItemsRendered={onItemsRendered}
-            width={layout.width}
-            height={layout.height}
-            itemSize={getItemSize}
-            itemCount={itemCount}
-          >
-            {Row}
-          </VariableSizeList>
-        )}
-      </InfiniteLoader>
-    );
-  }
-
-  const onLayout = React.useCallback(
-    ({
-      nativeEvent: {
-        layout: { width, height },
+  const totalSize = (props.data?.length || 0) + 2;
+  console.log({ totalSize });
+  const virtual = useVirtual({
+    horizontal: !!props.horizontal,
+    size: totalSize, // +1 if
+    parentRef,
+    estimateSize: React.useMemo(
+      () => {
+        return (index: number | undefined) => {
+          if (!getItemLayout || !index) {
+            return 100;
+          }
+          return getItemLayout(data as any, index).length;
+        };
       },
-    }) => {
-      setLayout({ width, height });
-    },
-    [setLayout]
-  );
+      // we only want to run estimateSize if data changes & getItemLayout is there
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      getItemLayout ? [getItemLayout, data] : [getItemLayout]
+    ),
+  });
 
   return (
-    <View
-      onLayout={onLayout}
-      style={[props.style, inverted && styles.invertedContainer]}
+    <div
+      data-testid={testID}
+      ref={parentRef}
+      style={{
+        height: `500px`,
+        width: `100%`,
+        overflow: 'auto',
+      }}
     >
-      {layout.width > 0 && layout.height > 0 ? inner : null}
-    </View>
+      <div
+        style={{
+          height: `${virtual.totalSize}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtual.virtualItems.map(({ index, size, start, measureRef }) => {
+          const dataIndex = index - 1; // +1 because we have added a header above data
+          const isHeader = index === 0;
+          const isFooter = totalSize - 1 === index;
+          const isItem = !isHeader && !isFooter;
+          console.log({
+            index,
+            dataIndex,
+            isHeader,
+            isFooter,
+            isItem,
+            size,
+            totalSize,
+          });
+          return (
+            <div
+              key={index}
+              ref={
+                isFooter || isHeader || (isItem && !getItemLayout)
+                  ? measureRef
+                  : undefined
+              }
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: props.horizontal ? size : undefined,
+                height: props.horizontal ? undefined : size,
+                transform: props.horizontal
+                  ? `translateX(${start}px)`
+                  : `translateY(${start}px)`,
+              }}
+            >
+              {isHeader
+                ? ListHeaderComponent && (
+                    <View style={ListHeaderComponentStyle}>
+                      {typeof ListHeaderComponent === 'function'
+                        ? (ListHeaderComponent as any)()
+                        : ListHeaderComponent}
+                    </View>
+                  )
+                : null}
+              {isItem && renderItem && data?.[dataIndex]
+                ? renderItem({ index, item: data?.[dataIndex] } as any)
+                : null}
+              {isFooter
+                ? ListFooterComponent && (
+                    <View style={ListFooterComponentStyle}>
+                      {typeof ListFooterComponent === 'function'
+                        ? (ListFooterComponent as any)()
+                        : ListFooterComponent}
+                    </View>
+                  )
+                : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
-const styles = StyleSheet.create({
-  invertedContainer: {
-    transform: [{ scale: -1 }],
-  },
-  invertedItem: {},
-});
+export function useLatest<T>(value: T) {
+  const ref = React.useRef(value);
+  ref.current = value;
+  return ref;
+}
+
+export default React.memo(FlatList);

@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, Text } from 'react-native';
 import RidgeList from 'react-native-ridge-list';
 import Item, { ItemType, getDefaultItemLayout } from './Item';
 
@@ -14,31 +14,65 @@ export default function App() {
     >
       <RidgeList
         data={data}
-        renderItem={({ item }) => {
+        renderItem={({ item, index }) => {
+          console.log({ item, index });
           return <Item item={item} />;
         }}
         keyExtractor={(item) => `${item.id}`}
         getItemLayout={getDefaultItemLayout}
         style={styles.root}
+        ListHeaderComponent={() => (
+          <View>
+            <Text>Header</Text>
+          </View>
+        )}
+        ListFooterComponent={() => (
+          <View>
+            <Text>Footer</Text>
+          </View>
+        )}
       />
       <RidgeList
         data={data}
         renderItem={({ item }) => {
+          console.log({ item });
           return <Item item={item} />;
         }}
         keyExtractor={(item) => `${item.id}`}
-        getItemLayout={getDefaultItemLayout}
+        // getItemLayout={getDefaultItemLayout}
         style={styles.root}
+        ListHeaderComponent={() => (
+          <View>
+            <Text>Header</Text>
+          </View>
+        )}
+        ListFooterComponent={() => (
+          <View>
+            <Text>Footer</Text>
+          </View>
+        )}
       />
       <RidgeList
         inverted
-        data={[data[0], data[1], data[2], data[3], data[4]]}
-        renderItem={({ item }) => {
+        data={invertedData}
+        renderItem={({ item, index }) => {
+          console.log({ item, index, invertedData });
+
           return <Item item={item} />;
         }}
         keyExtractor={(item) => `${item.id}`}
-        getItemLayout={getDefaultItemLayout}
+        // getItemLayout={getDefaultItemLayout}
         style={styles.root}
+        ListHeaderComponent={() => (
+          <View>
+            <Text>Header</Text>
+          </View>
+        )}
+        ListFooterComponent={() => (
+          <View>
+            <Text>Footer</Text>
+          </View>
+        )}
       />
     </View>
   );
@@ -3561,3 +3595,4 @@ const data: ItemType[] = [
     body: 'perspiciatis quis doloremque\nveniam nisi eos velit sed\nid totam inventore voluptatem laborum et eveniet\naut aut aut maxime quia temporibus ut omnis',
   },
 ];
+const invertedData = [data[0], data[1], data[2], data[3], data[4]];
