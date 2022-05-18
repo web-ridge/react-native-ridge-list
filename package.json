@@ -153,6 +153,7 @@
     ]
   },
   "dependencies": {
+    "react-virtuoso": "^2.8.6",
     "react-window": "^1.8.6",
     "react-window-infinite-loader": "^1.0.7"
   }

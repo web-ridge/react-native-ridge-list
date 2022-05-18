@@ -23,9 +23,14 @@ export function getDefaultItemLayout<T>(
 }
 
 function Item({ item }: { item: ItemType }) {
+  if (!item) {
+    return <Text>NULL ITEM???????????</Text>;
+  }
   return (
     <View style={[styles.root, { height: ITEM_HEIGHT }]}>
-      <Text style={styles.title}>{item.name}</Text>
+      <Text style={styles.title}>
+        {item.name} {item.id}
+      </Text>
       <Text style={styles.description}>{item.email}</Text>
     </View>
   );
